@@ -1,0 +1,24 @@
+name: faultlens
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - scikit-learn
+  - networkx
+  - matplotlib
+  - plotly
+  - streamlit
+  - jupyterlab
+  - pip
+
+  - pip:
+      - langgraph
+      - langchain
+      - langchain-openai
+      - neo4j
+      - python-dotenv
+      - openai
