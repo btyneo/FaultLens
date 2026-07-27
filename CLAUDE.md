@@ -29,6 +29,34 @@ conda env export --from-history > environment.yml
 - `data/` — MetroPT ingestion, cleaning, and the component graph schema
 - `notebooks/` — exploratory work only; nothing here is part of the final pipeline
 
+## Project structure
+
+```
+faultlens/
+├── agents/
+│   ├── interfaces.py       # shared contract: AnomalyFlag, DiagnosisResult, detect_anomalies(), diagnose()
+│   ├── router.py            # parses the question, picks time window/intent
+│   ├── retrieval.py         # pulls the relevant sensor slice
+│   ├── anomaly.py            # real detect_anomalies() implementation (Hamza)
+│   ├── diagnosis.py          # real diagnose() implementation, uses data/graph.py (Hamza)
+│   ├── recommendation.py     # turns DiagnosisResult into drafted text (Eya)
+│   └── pipeline.py           # wires all agents together with LangGraph (Eya)
+├── data/
+│   ├── raw/                  # original MetroPT CSVs — gitignored, not committed
+│   ├── ingest.py              # loads + cleans raw CSVs into one DataFrame (Hamza)
+│   ├── graph.py                # the component_graph dict: subsystems/sensors/failures (Hamza)
+│   └── load.py                  # convenience function: get_sensor_data(time_window) (Hamza)
+├── eval/
+│   ├── test_cases.py           # the 15-20 labeled Q&A cases + ground truth
+│   ├── run_eval.py              # runs pipeline on test cases, computes accuracy
+│   └── baseline.py               # naive single-shot LLM comparison
+├── demo/
+│   └── app.py                    # Streamlit page: pick a window, see the reasoning trace
+└── notebooks/                     # exploratory only — never imported by real code
+```
+
+**Why split this way**: `agents/` + `data/` mirrors the actual person split — everything under `data/` plus `agents/anomaly.py` and `agents/diagnosis.py` is Hamza's; the rest of `agents/` is Eya's, so the folder itself tells you what's yours. `eval/` is a top-level folder, not buried inside `agents/`, because the ground-truth evaluation is what makes this project credible and should be immediately visible, not an afterthought. `demo/app.py` only ever calls `agents/pipeline.py` — it never reimplements logic — so the demo is provably running the same system that gets evaluated. `data/raw/` and any `*.csv` are gitignored; point to the MetroPT download link in the README instead of committing the data itself. Nothing in `notebooks/` is ever imported by real code — if something built there turns out to matter, it gets promoted into a proper `.py` file.
+
 ## Shared interface contract
 
 `agents/interfaces.py` defines the contract between the data/graph side and the agent pipeline side: `AnomalyFlag`, `DiagnosisResult`, `detect_anomalies()`, `diagnose()`. Both branches build against these exact shapes.
