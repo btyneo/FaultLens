@@ -1,14 +1,54 @@
+# Claude Code personal files
+CLAUDE.local.md
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+.pytest_cache/
 
+# Conda / virtual envs (in case anyone creates one inside the repo folder)
+.venv/
+venv/
+env/
+
+# Environment / secrets
 .env
+*.env.local
 
+# Data
+data/raw/
+*.csv
+*.parquet
+
+# Jupyter
 .ipynb_checkpoints/
 
-data/raw/
+# Streamlit
+.streamlit/
 
-*.csv
+# OS-specific junk (you're on Windows, Eya might not be)
+.DS_Store
+Thumbs.db
+desktop.ini
 
+# Editor/IDE
 .vscode/
+.idea/
+*.swp
+A few worth explaining, not just listing:
 
-*.log
+*.csv broadly, not just data/raw/ — this catches any stray CSV either of you exports anywhere in the repo (a debug output, a quick test file) so it doesn't accidentally get committed. If you ever do need to commit a small CSV on purpose (e.g. your eval test cases), use git add -f path/to/file.csv to force-add past the ignore rule for that one file.
+.streamlit/ — Streamlit creates a local config/secrets folder the first time you run it; you don't want that synced between machines.
+OS junk for both platforms — you're on Windows (desktop.ini, Thumbs.db), but don't assume Eya is too; .DS_Store covers her if she's on Mac. Costs nothing to include both.
+.vscode/ / .idea/ — editor settings are personal, not shared — same logic as CLAUDE.local.md.
+Apply it:
+
+bash
+git add .gitignore
+git commit -m "Expand gitignore"
+git push origin main
+One thing worth checking: if any of these (like a .csv or __pycache__) were already committed before this .gitignore existed, adding the rule now won't remove them retroactively — you'd need git rm --cached <file> for anything already tracked. Worth a quick git status check after this to see if anything unexpected shows as newly-ignored-but-still-tracked.
+
+
+

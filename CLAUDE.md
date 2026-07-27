@@ -29,6 +29,15 @@ conda env export --from-history > environment.yml
 - `data/` — MetroPT ingestion, cleaning, and the component graph schema
 - `notebooks/` — exploratory work only; nothing here is part of the final pipeline
 
+## Shared interface contract
+
+`agents/interfaces.py` defines the contract between the data/graph side and the agent pipeline side: `AnomalyFlag`, `DiagnosisResult`, `detect_anomalies()`, `diagnose()`. Both branches build against these exact shapes.
+
+- Hamza implements the real versions in `feature/data-graph`.
+- Eya implements stub versions with the same shapes (fake but realistic return values) in `feature/agent-pipeline`, so her pipeline is testable before the real logic exists.
+- Once Hamza's real versions are merged into `main`, Eya swaps her stub imports for the real ones — no other code should need to change, since the shape stayed identical.
+- Don't change the shapes in `interfaces.py` unilaterally — both people depend on them staying stable. Agree together first if a change is genuinely needed.
+
 ## Team split
 
 - **Hamza** — dataset ingestion, component graph, anomaly detection agent, evaluation harness. Branch: `feature/data-graph`
