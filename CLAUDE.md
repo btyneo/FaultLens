@@ -18,9 +18,11 @@ conda activate component-health-agent
 ```
 
 If you add a new package, regenerate the file with:
+
 ```
 conda env export --from-history > environment.yml
 ```
+
 (`--from-history` keeps it to what was explicitly installed, not the full transitive dependency tree — commit the updated file.)
 
 ## Project structure
@@ -30,6 +32,9 @@ conda env export --from-history > environment.yml
 - `notebooks/` — exploratory work only; nothing here is part of the final pipeline
 
 ## Project structure
+
+This is what the project is supposed to look like at the final stage
+, currently it's in production so a lot of file might not be there yet and hamza/Eya will create them
 
 ```
 faultlens/
