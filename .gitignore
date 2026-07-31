@@ -18,12 +18,13 @@ env/
 
 # Data
 data/raw/
+!data/raw/.gitkeep
 *.csv
 *.parquet
 
 # Jupyter
 .ipynb_checkpoints/
-
+rough.ipynb 
 # Streamlit
 .streamlit/
 
