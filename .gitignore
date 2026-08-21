@@ -16,6 +16,9 @@ env/
 .env
 *.env.local
 
+#folders
+notebooks/
+
 # Data
 data/raw/
 !data/raw/.gitkeep
@@ -24,7 +27,6 @@ data/raw/
 
 # Jupyter
 .ipynb_checkpoints/
-rough.ipynb 
 # Streamlit
 .streamlit/
 
