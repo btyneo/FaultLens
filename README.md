@@ -8,20 +8,27 @@ Industrial equipment produces huge volumes of sensor data. When something drifts
 
 ## The dataset
 
-**MetroPT** — real sensor data from the Air Production Unit (APU) of an operational metro train in Porto, Portugal. Not simulated.
+**MetroPT** — real sensor data from the Air Production Unit (APU) of an operational metro train in Porto, Portugal. Not simulated. ~1.5M readings, Feb–Sep 2020, 15 sensors.
 
-| Sensor | Measures | Module |
+| Sensor | Measures | Subsystem |
 |---|---|---|
-| TP2 | Compressor pressure (bar) | Compressor |
-| Oil_Temperature | Oil temperature (°C) | Compressor |
-| Motor_Current | Motor current draw (A) | Compressor |
-| TP3 | Pneumatic panel pressure (bar) | Air Control Panel |
-| H1 | Valve activation above 10.2 bar | Air Control Panel |
+| TP2 | Compressor discharge pressure (bar) | Compressor |
+| Motor_current | Motor current draw (A) | Compressor |
+| Oil_temperature | Compressor oil temperature (°C) | Compressor |
+| Oil_level | Compressor oil level | Compressor |
+| COMP | Air intake valve electrical signal | Compressor |
+| DV_eletric | Compressor outlet valve electrical signal | Compressor |
+| MPG | Compressor-under-load start signal | Compressor |
+| TP3 | Air control panel pressure (bar) | Air Control Panel |
+| H1 | Valve activation signal | Air Control Panel |
 | Reservoirs | Air tank pressure (bar) | Air Control Panel |
-| Flowmeter | Airflow (m³/h) | Air Control Panel |
-| DV_pressure | Pressure drop during air-dryer discharge (bar) | Air Dryer |
+| LPS | Low pressure switch signal | Air Control Panel |
+| Caudal_impulses | Airflow pulse count (APU → reservoirs) | Air Control Panel |
+| DV_pressure | Pressure drop during air-dryer tower discharge (bar) | Air Dryer |
+| Towers | Active drying tower indicator | Air Dryer |
+| Pressure_switch | Air dryer pressure switch signal | Air Dryer |
 
-Ground truth comes from the dataset's own documented failure reports (real logged air leak / oil leak events with start/end timestamps).
+Ground truth comes from the dataset's own documented failure reports: 4 real logged air-leak events with start/end timestamps (4/18, 5/29–5/30, 6/5–6/7, 7/15/2020), each followed by scheduled maintenance.
 
 ## Architecture
 
@@ -37,7 +44,7 @@ flowchart TD
     H -->|rejected| REC
 ```
 
-- **Router** — parses the question, identifies the relevant time window/module.
+- **Router** — parses the question, identifies the relevant time window/subsystem keywords.
 - **Retrieval** — pulls the relevant sensor slice.
 - **Anomaly detection** — rolling z-score per sensor, window tuned to the compressor's measured ~20-minute duty cycle.
 - **Graph reasoning** — traces flagged sensors to a subsystem and likely failure type via the component graph.
@@ -51,21 +58,40 @@ graph TD
     APU --> ACP[Air Control Panel]
     APU --> DRY[Air Dryer]
 
-    COMP --> TP2[TP2: compressor pressure]
-    COMP --> OILT[Oil temperature]
+    COMP --> TP2[TP2: discharge pressure]
     COMP --> MC[Motor current]
+    COMP --> OILT[Oil temperature]
+    COMP --> OILL[Oil level]
+    COMP --> COMPSIG[COMP: intake valve signal]
+    COMP --> DVE[DV_eletric: outlet valve signal]
+    COMP --> MPG[MPG: load-start signal]
 
     ACP --> TP3[TP3: panel pressure]
-    ACP --> H1[H1: valve]
+    ACP --> H1[H1: valve signal]
     ACP --> RES[Reservoirs pressure]
-    ACP --> FLOW[Flowmeter]
+    ACP --> LPS[LPS: low pressure switch]
+    ACP --> CAUD[Caudal_impulses: airflow count]
 
-    DRY --> DV[DV pressure]
+    DRY --> DVP[DV_pressure]
+    DRY --> TOW[Towers]
+    DRY --> PSW[Pressure_switch]
 
-    OILT --> F1[Failure: oil leak in compressor]
-    MC --> F1
-    DV --> F2[Failure: air leak in air dryer]
-    RES --> F3[Failure: air leak affecting clients]
+    MC --> F1[Failure: motor overload]
+    OILL --> F2[Failure: oil leak]
+    OILT --> F2
+    DVE --> F3[Failure: valve failure]
+    MPG --> F3
+    COMPSIG --> F3
+
+    TP3 --> F4[Failure: pressure regulation failure]
+    H1 --> F4
+    RES --> F5[Failure: air leak]
+    LPS --> F5
+    CAUD --> F5
+
+    DVP --> F6[Failure: moisture carryover]
+    TOW --> F7[Failure: tower switching failure]
+    PSW --> F7
 ```
 
 ## Evaluation
@@ -77,12 +103,13 @@ graph TD
 
 ## Team split
 
-- **Hamza** — component graph, anomaly detection agent, evaluation harness.
-- **Eya** — LangGraph orchestration, agent prompts, demo interface.
+- **Hamza** — component graph, anomaly detection agent, diagnosis agent, evaluation harness.
+- **Eya** — LangGraph orchestration, retrieval and recommendation agents, demo interface.
 
 ## Known limitations
 
 - Anomaly severity naturally decays during long, sustained faults, since the rolling baseline gradually adapts to the ongoing abnormal readings. A two-pass baseline-freezing fix was attempted but introduced a division-by-near-zero issue on low-variance sensors; a more robust fix (per-sensor-scaled epsilon, or explicit handling of frozen baselines) is a natural v2 extension.
+- Subsystem localization in `diagnose()` is unreliable for leak-type failures. The heuristic picks the subsystem whose earliest flagged sensor fired first, on the assumption that the root cause shows symptoms before the rest of the system reacts. In practice, air leaks cause system-wide stress almost immediately — 9 to 13 of the 15 sensors flag within the same event — so there's little localized signal to find. Validated against all 4 of MetroPT-3's documented air-leak events, the heuristic correctly identified the subsystem/failure type in 1 of 4. The remaining failure modes in the signature table (oil leak, motor overload, valve failure) have no documented ground-truth events in this dataset at all and are unverified domain-knowledge guesses, not empirically validated mappings.
 - Sensor-to-module mapping is grounded in the dataset's own documentation, but severity thresholds required some judgment calls, documented in code comments.
 - The eval set is modest (15-20 cases) given how few real documented failures exist in the data — a deliberate, stated tradeoff, not a large-scale benchmark.
 
