@@ -1,6 +1,7 @@
 from agents.router import route
 from agents.retrieval import retrieve                      
-from agents.stub_diagnostics import detect_anomalies, diagnose
+from agents.diagnose import diagnose
+from agents.anomaly import  detect_anomalies
 
 from agents.recommendation import make_recommendation, request_approval
 
@@ -13,8 +14,9 @@ def run(question : str):
     # retrieval turns it into the actual sensor rows for that window
     data = retrieve(parsed["time_window"])
     print("Retrieved:", data.shape)
-    if data.empty:                                          # NEW: make the no-data case visible
-        print("No sensor data in this window")
+    if data.empty:
+        print("No sensor data in this window - cannot diagnose.")
+        return {"recommendation": None, "approved": False}
 
     # CHANGED: detect_anomalies now gets the sensor slice, not parsed
     flags = detect_anomalies(data)
@@ -39,4 +41,4 @@ def run(question : str):
     
 
 if __name__ == "__main__":
-    run("Were there any motor issues in the last 24 hours?")
+    run("Were there any issues on March 10, 2020?")
