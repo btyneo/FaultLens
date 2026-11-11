@@ -2,6 +2,8 @@ from agents.router import route
 from agents.retrieval import retrieve                      
 from agents.stub_diagnostics import detect_anomalies, diagnose
 
+from agents.recommendation import make_recommendation, request_approval
+
 def run(question : str):
     # this calls route passing in question , whaterver route returns it will get stored in the new variable parsed
     parsed = route(question)
@@ -21,9 +23,20 @@ def run(question : str):
     #flags goes into diagnose()
     result = diagnose(flags)
     print("Diagnose:", result )
+    
+    rec = make_recommendation(result, flags)
+    approved = request_approval(rec)
+    
+    if approved:
+        print("FINAL: recommendation approved.")
+    else:
+        print("REJECTED: recommendation discarded, nothing is final.")
+    
+    return {"recommendation": rec, "approved": approved}
 
     return result
 
+    
 
 if __name__ == "__main__":
     run("Were there any motor issues in the last 24 hours?")
