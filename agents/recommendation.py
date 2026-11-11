@@ -1,5 +1,6 @@
 # agents/recommendation.py
 from agents.interfaces import AnomalyFlag, DiagnosisResult
+from data.graph import sensor_to_subsystem
 
 HIGH_CONF = 0.7
 MED_CONF = 0.4
@@ -10,13 +11,20 @@ def make_recommendation(diagnosis: DiagnosisResult, flags: list[AnomalyFlag]) ->
     if not flags or diagnosis.subsystem.lower() == "none":
         return "No anomalies detected in this window. No action needed."
 
-    # 2. readable names (works for "bearing_wear" and "oil leak")
+    # 2. readable names
     failure = diagnosis.likely_failure.replace("_", " ")
     subsystem = diagnosis.subsystem.replace("_", " ")
 
-    # 3. unique sensor names, sorted so the output is always in the same order
-    sensors = sorted({flag.sensor for flag in flags})
-    sensor_text = ", ".join(sensors)
+    # 3. split sensors: the ones in the diagnosed subsystem vs the rest
+    all_sensors = {flag.sensor for flag in flags}
+    supporting = sorted(s for s in all_sensors
+                        if sensor_to_subsystem.get(s) == diagnosis.subsystem)
+    others = sorted(all_sensors - set(supporting))
+
+    if not supporting:   # stub sensors aren't in the graph -> just list all
+        supporting, others = sorted(all_sensors), []
+
+    sensor_text = ", ".join(supporting)
 
     # 4. wording + action based on confidence
     conf = diagnosis.confidence
@@ -31,9 +39,10 @@ def make_recommendation(diagnosis: DiagnosisResult, flags: list[AnomalyFlag]) ->
         action = "No action yet, keep monitoring."
 
     # 5. one readable sentence
+    extra = f" Also flagged elsewhere: {', '.join(others)}." if others else ""
     return (
         f"{sensor_text} flagged ({len(flags)} anomalies) - "
-        f"{wording} {failure} in the {subsystem} (confidence {conf:.0%}). {action}"
+        f"{wording} {failure} in the {subsystem} (confidence {conf:.0%}). {action}{extra}"
     )
 
 

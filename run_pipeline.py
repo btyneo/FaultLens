@@ -18,7 +18,7 @@ def run(question : str):
 
     # CHANGED: detect_anomalies now gets the sensor slice, not parsed
     flags = detect_anomalies(data)
-    print("Anomalies : ", flags)
+    print("Anomalies:", len(flags), "flags")
 
     #flags goes into diagnose()
     result = diagnose(flags)
