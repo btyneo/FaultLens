@@ -1,0 +1,266 @@
+/* ===== FaultLens theme =====
+   navy  #0B2A5B  structure, headings, primary buttons
+   blue  #23508A  normal data
+   amber #FF9500  anomalies / things that need attention (the spike in the logo)
+*/
+
+:root {
+    --fl-navy: #0B2A5B;
+    --fl-blue: #23508A;
+    --fl-amber: #FF9500;
+    --fl-muted: #5B6B82;
+    --fl-card: #FFFFFF;
+}
+
+/* page width + spacing */
+.block-container {
+    max-width: 1150px;
+    padding-top: 2rem;
+}
+
+/* ---------- header ---------- */
+.fl-header {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.2rem 1.6rem;
+    margin-bottom: 1.5rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--fl-navy) 0%, var(--fl-blue) 100%);
+    box-shadow: 0 8px 24px rgba(11, 42, 91, 0.18);
+    color: white;
+}
+.fl-header img {
+    width: 76px;
+    height: 76px;
+    padding: 6px;
+    border-radius: 16px;
+    background: white;
+}
+.fl-header h1 {
+    margin: 0;
+    padding: 0;
+    color: white;
+    font-size: 2.1rem;
+    letter-spacing: 0.5px;
+}
+.fl-header p {
+    margin: 0.2rem 0 0 0;
+    opacity: 0.85;
+    font-size: 0.95rem;
+}
+.fl-pill {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.15rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    font-size: 0.75rem;
+    letter-spacing: 0.4px;
+}
+
+/* ---------- stage headings ---------- */
+.fl-stage {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+}
+.fl-stage-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--fl-navy);
+    color: white;
+    font-weight: 700;
+}
+.fl-stage-title {
+    color: var(--fl-navy);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.fl-stage-sub {
+    color: var(--fl-muted);
+    font-size: 0.85rem;
+}
+
+/* cards: every st.container(border=True, key="card-...") */
+[class*="st-key-card-"] {
+    background: var(--fl-card);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(11, 42, 91, 0.06);
+}
+
+/* ---------- metrics ---------- */
+[data-testid="stMetric"] {
+    padding: 0.8rem 1rem;
+    border-left: 4px solid var(--fl-blue);
+    border-radius: 0 12px 12px 0;
+    background: #F4F6FA;
+}
+[data-testid="stMetricValue"] {
+    color: var(--fl-navy);
+    font-size: 1.4rem;
+}
+
+/* ---------- confidence bar ---------- */
+.fl-conf-track {
+    height: 10px;
+    margin: 0.4rem 0 0.6rem 0;
+    border-radius: 999px;
+    background: #E8EDF5;
+    overflow: hidden;
+}
+.fl-conf-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--fl-blue), var(--fl-amber));
+}
+
+/* ---------- recommendation ---------- */
+.fl-rec {
+    padding: 1rem 1.2rem;
+    border-left: 5px solid var(--fl-amber);
+    border-radius: 12px;
+    background: #FFF6E8;
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+/* ---------- decision banners ---------- */
+.fl-decision {
+    padding: 0.9rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.fl-approved { background: #E7F6EC; color: #17663A; border-left: 5px solid #22A55A; }
+.fl-rejected { background: #FDECEC; color: #9B1C1C; border-left: 5px solid #E04848; }
+.fl-decision small { display: block; margin-top: 0.3rem; font-weight: 400; opacity: 0.85; }
+
+/* ---------- buttons ---------- */
+.stButton > button {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: transform 0.08s ease, box-shadow 0.15s ease;
+}
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(11, 42, 91, 0.15);
+}
+
+/* ---------- sidebar ---------- */
+[data-testid="stSidebar"] {
+    background: #E8EDF5;
+}
+.fl-side-note {
+    color: var(--fl-muted);
+    font-size: 0.85rem;
+}
+
+/* hide the default footer */
+footer { visibility: hidden; }
+
+/* ===== keep the app readable even if Streamlit runs in dark mode ===== */
+[class*="st-key-card-"] {
+    color: #0F1B2D;
+}
+[class*="st-key-card-"] p,
+[class*="st-key-card-"] label,
+[class*="st-key-card-"] summary,
+[data-testid="stMetricLabel"] p {
+    color: #0F1B2D;
+}
+[data-testid="stMetricLabel"] p {
+    color: var(--fl-muted);
+}
+[class*="st-key-card-"] input {
+    background: #F4F6FA !important;
+    color: #0F1B2D !important;
+    -webkit-text-fill-color: #0F1B2D;
+}
+.fl-rec {
+    color: #0F1B2D;
+}
+[class*="st-key-card-"] [data-testid="stJson"] {
+    background: #F4F6FA;
+    border-radius: 10px;
+    padding: 0.3rem;
+}
+
+/* buttons: navy primary, white secondary, in any theme */
+[data-testid="stBaseButton-primary"] {
+    background: var(--fl-navy) !important;
+    border-color: var(--fl-navy) !important;
+}
+[data-testid="stBaseButton-primary"] p {
+    color: #FFFFFF !important;
+}
+[data-testid="stBaseButton-secondary"] {
+    background: #FFFFFF !important;
+    border: 1px solid #C9D3E3 !important;
+}
+[data-testid="stBaseButton-secondary"] p {
+    color: var(--fl-navy) !important;
+}
+
+/* page, sidebar and messages: same look in any theme */
+[data-testid="stApp"] {
+    background: #F4F6FA;
+}
+[data-testid="stHeader"] {
+    background: transparent;
+}
+[data-testid="stHeader"] button,
+[data-testid="stHeader"] span {
+    color: var(--fl-navy);
+}
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] p {
+    color: var(--fl-navy);
+}
+[data-testid="stSidebar"] hr {
+    border-color: #C9D3E3;
+}
+[data-testid="stAlert"] p {
+    color: #0F1B2D;
+}
+
+/* ---------- message boxes (replace st.info / st.warning / st.success) ---------- */
+.fl-note {
+    margin: 0.5rem 0;
+    padding: 0.85rem 1.1rem;
+    border-radius: 12px;
+    color: #0F1B2D;
+}
+.fl-note-info { background: #E8EFFA; border-left: 5px solid var(--fl-blue); }
+.fl-note-warn { background: #FFF6E8; border-left: 5px solid var(--fl-amber); }
+.fl-note-ok   { background: #E7F6EC; border-left: 5px solid #22A55A; }
+
+/* ---------- router key/value table ---------- */
+.fl-kv {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+.fl-kv td {
+    padding: 0.45rem 0.6rem;
+    border: none;
+    border-bottom: 1px solid #E8EDF5;
+    color: #0F1B2D;
+}
+.fl-kv td:first-child {
+    width: 38%;
+    color: var(--fl-muted);
+}
+
+/* soft card borders in any theme */
+[class*="st-key-card-"] {
+    border-color: #DDE4EE !important;
+}

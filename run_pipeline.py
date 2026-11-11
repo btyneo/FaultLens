@@ -1,29 +1,50 @@
 from agents.router import route
-from agents.retrieval import retrieve                      
-from agents.stub_diagnostics import detect_anomalies, diagnose
+from agents.retrieval import retrieve
+from agents.anomaly import detect_anomalies
+from agents.diagnose import diagnose
+from agents.recommendation import make_recommendation, request_approval
 
-def run(question : str):
-    # this calls route passing in question , whaterver route returns it will get stored in the new variable parsed
+
+def run_stages(question: str) -> dict:
+    """Runs every pipeline stage and returns all results. No printing, no input()."""
     parsed = route(question)
-    print("Parsed:", parsed)
-
-    # NEW: the router only gives the "request slip" (dates as text);
-    # retrieval turns it into the actual sensor rows for that window
     data = retrieve(parsed["time_window"])
-    print("Retrieved:", data.shape)
-    if data.empty:                                          # NEW: make the no-data case visible
-        print("No sensor data in this window")
 
-    # CHANGED: detect_anomalies now gets the sensor slice, not parsed
+    if data.empty:
+        return {"parsed": parsed, "data_shape": data.shape, "flags": [],
+                "diagnosis": None, "recommendation": None}
+
     flags = detect_anomalies(data)
-    print("Anomalies : ", flags)
+    diagnosis = diagnose(flags)
+    recommendation = make_recommendation(diagnosis, flags)
 
-    #flags goes into diagnose()
-    result = diagnose(flags)
-    print("Diagnose:", result )
+    return {
+        "parsed": parsed,
+        "data_shape": data.shape,
+        "flags": flags,
+        "diagnosis": diagnosis,
+        "recommendation": recommendation,
+    }
 
-    return result
+
+def run(question: str):
+    """Terminal version: prints each stage and asks for approval with input()."""
+    stages = run_stages(question)
+    print("Parsed:", stages["parsed"])
+    print("Retrieved:", stages["data_shape"])
+
+    if stages["recommendation"] is None:
+        print("No sensor data in this window - cannot diagnose.")
+        return {"recommendation": None, "approved": False}
+
+    print("Anomalies:", len(stages["flags"]), "flags")
+    print("Diagnose:", stages["diagnosis"])
+
+    approved = request_approval(stages["recommendation"])
+    print("FINAL: recommendation approved." if approved
+          else "REJECTED: recommendation discarded, nothing is final.")
+    return {"recommendation": stages["recommendation"], "approved": approved}
 
 
 if __name__ == "__main__":
-    run("Were there any motor issues in the last 24 hours?")
+    run("Were there any air leaks on April 18, 2020?")
